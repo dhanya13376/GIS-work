@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Boundary + Landmarks</title>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.27/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.27/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/MapImageLayer",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/Popup"
+      ], function (
+        Map,
+        MapView,
+        MapImageLayer,
+        FeatureLayer,
+        Legend,
+        Popup
+      ) {
+
+        const map = new Map({
+          basemap: "streets-navigation-vector"
+        });
+
+        // — India Administrative Boundary (MapImageLayer)
+        const indiaBoundary = new MapImageLayer({
+          url:
+            "https://mapservice.gov.in/mapserviceserv176/rest/services/India_Boundary/MapServer",
+          title: "India Administrative Boundary"
+        });
+        map.add(indiaBoundary);
+
+        // — Landmarks (FeatureLayer)
+        const landmarks = new FeatureLayer({
+          url:
+            "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/ArcGIS/rest/services/Landmarks/FeatureServer/0",
+          title: "Landmarks",
+          outFields: ["*"], // load all fields for popups
+          popupTemplate: {
+            title: "{NAME}",            // field name for landmark name
+            content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "TYPE",
+                    label: "Type"
+                  },
+                  {
+                    fieldName: "DESCRIPTION",
+                    label: "Desc"
+                  }
+                ]
+              }
+            ]
+          }
+        });
+        map.add(landmarks);
+
+        // — View
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [78.9629, 20.5937], // India center
+          zoom: 4
+        });
+
+        // — Optional: Legend
+        const legend = new Legend({
+          view: view
+        });
+        view.ui.add(legend, "bottom-right");
+
+      });
+    </script>
+  </body>
+</html>
