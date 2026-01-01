@@ -38,10 +38,13 @@
       const map = new Map({
         basemap: "streets-vector"
       });
+      
+      
+    
 
       // 2️⃣ Editable Landmarks FeatureLayer
       const editableLandmarks = new FeatureLayer({
-        url: "YOUR_EDITABLE_FEATURESERVICE_URL", // <-- replace with your editable layer URL
+        url: "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/ArcGIS/rest/services/Landmarks/FeatureServer/0", // <-- replace with your editable layer URL
         title: "Landmarks",
         outFields: ["*"],
         popupTemplate: {
