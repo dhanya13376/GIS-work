@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Editable Landmarks Map + FeatureTable</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.27/"></script>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #viewDiv {
+      height: 60%;
+    }
+    #tableDiv {
+      height: 40%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+  <div id="tableDiv"></div>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/FeatureTable",
+      "esri/widgets/Editor"
+    ], function(Map, MapView, FeatureLayer, FeatureTable, Editor) {
+
+      // 1️⃣ Map
+      const map = new Map({
+        basemap: "streets-vector"
+      });
+
+      // 2️⃣ Editable Landmarks FeatureLayer
+      const editableLandmarks = new FeatureLayer({
+        url: "YOUR_EDITABLE_FEATURESERVICE_URL", // <-- replace with your editable layer URL
+        title: "Landmarks",
+        outFields: ["*"],
+        popupTemplate: {
+          title: "{NAME}",
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                { fieldName: "NAME", label: "Landmark Name", editable: true },
+                { fieldName: "TYPE", label: "Type", editable: true },
+                { fieldName: "DESCRIPTION", label: "Description", editable: true }
+              ]
+            }
+          ]
+        }
+      });
+
+      map.add(editableLandmarks);
+
+      // 3️⃣ MapView
+      const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [78.9629, 20.5937],
+        zoom: 4
+      });
+
+      // 4️⃣ FeatureTable
+      const featureTable = new FeatureTable({
+        view: view,
+        layer: editableLandmarks,
+        container: "tableDiv",
+        editingEnabled: true,
+        visibleElements: {
+          selectionColumn: true,
+          columnMenus: true
+        }
+      });
+
+      // Zoom to selected row
+      featureTable.on("selection-change", (event) => {
+        const added = event.added;
+        if (added.length > 0) {
+          view.goTo(added[0].feature.geometry);
+        }
+      });
+
+      // 5️⃣ Editor widget (for map editing)
+      const editor = new Editor({
+        view: view,
+        layerInfos: [{
+          layer: editableLandmarks,
+          fieldConfig: [
+            { name: "NAME", label: "Landmark Name" },
+            { name: "TYPE", label: "Type" },
+            { name: "DESCRIPTION", label: "Description" }
+          ]
+        }]
+      });
+
+      view.ui.add(editor, "top-right");
+
+      // 6️⃣ Optional: click on map → show popup
+      view.on("click", (event) => {
+        view.hitTest(event).then((response) => {
+          const results = response.results.filter(r => r.graphic.layer === editableLandmarks);
+          if (results.length) {
+            view.popup.open({
+              features: [results[0].graphic],
+              location: event.mapPoint
+            });
+            view.goTo(results[0].graphic.geometry);
+          }
+        });
+      });
+
+    });
+  </script>
+</body>
+</html>
